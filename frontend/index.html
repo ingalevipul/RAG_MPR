@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SupplyGuard — AI Risk Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --bg:       #0a0e1a;
+    --surface:  #111827;
+    --border:   #1f2d45;
+    --accent:   #00e5ff;
+    --accent2:  #7c3aed;
+    --green:    #22d3a5;
+    --yellow:   #f59e0b;
+    --orange:   #f97316;
+    --red:      #ef4444;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --mono:     'Space Mono', monospace;
+    --sans:     'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+
+  /* ── GRID LINES BG ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── LAYOUT ── */
+  .app { position: relative; z-index: 1; display: grid; grid-template-rows: 60px 1fr; height: 100vh; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px;
+    background: rgba(17,24,39,.9);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 28px; height: 28px; background: var(--accent); clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); }
+  .logo-text { font-family: var(--mono); font-size: 14px; letter-spacing: 2px; color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .status-label { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+  /* ── MAIN CONTENT ── */
+  .main { display: grid; grid-template-columns: 220px 1fr 340px; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    display: flex; flex-direction: column; gap: 4px;
+    overflow-y: auto;
+  }
+  .nav-section-label { font-size: 9px; letter-spacing: 2px; color: var(--muted); padding: 12px 20px 6px; font-family: var(--mono); text-transform: uppercase; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer;
+    font-size: 13px; color: var(--muted);
+    transition: all .15s; border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,229,255,.05); }
+  .nav-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ── CONTENT ── */
+  .content { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── PANEL ── */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .panel-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 11px; font-family: var(--mono); letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  .panel-body { padding: 18px; }
+
+  /* ── RISK METER ── */
+  .risk-overview { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+  .risk-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+    position: relative; overflow: hidden;
+  }
+  .risk-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .risk-card.critical::before { background: var(--red); }
+  .risk-card.high::before { background: var(--orange); }
+  .risk-card.medium::before { background: var(--yellow); }
+  .risk-card.low::before { background: var(--green); }
+  .rc-label { font-size: 9px; letter-spacing: 2px; color: var(--muted); font-family: var(--mono); }
+  .rc-value { font-size: 28px; font-family: var(--mono); margin: 4px 0; }
+  .rc-sub { font-size: 11px; color: var(--muted); }
+  .critical .rc-value { color: var(--red); }
+  .high .rc-value { color: var(--orange); }
+  .medium .rc-value { color: var(--yellow); }
+  .low .rc-value { color: var(--green); }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 11px; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 6px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 4px; padding: 8px 12px; font-size: 13px;
+    font-family: var(--sans); transition: border .15s; outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { min-height: 80px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag {
+    background: rgba(0,229,255,.1); border: 1px solid rgba(0,229,255,.2);
+    color: var(--accent); font-size: 11px; padding: 2px 8px; border-radius: 3px;
+    cursor: pointer; font-family: var(--mono);
+  }
+  .tag.remove::after { content: ' ×'; }
+
+  /* ── BUTTON ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    border: none; border-radius: 4px; font-family: var(--mono); font-size: 12px;
+    letter-spacing: 1px; padding: 10px 20px; transition: all .15s;
+    text-transform: uppercase;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #33eeff; transform: translateY(-1px); }
+  .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-secondary:hover { background: rgba(0,229,255,.1); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+  .spinner { width: 12px; height: 12px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RISK ITEMS ── */
+  .risk-list { display: flex; flex-direction: column; gap: 10px; }
+  .risk-item {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px; cursor: pointer; transition: border-color .15s;
+    border-left: 3px solid transparent;
+  }
+  .risk-item:hover { border-color: var(--accent); }
+  .risk-item.critical { border-left-color: var(--red); }
+  .risk-item.high { border-left-color: var(--orange); }
+  .risk-item.medium { border-left-color: var(--yellow); }
+  .risk-item.low { border-left-color: var(--green); }
+  .ri-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .ri-id { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .ri-title { font-size: 13px; font-weight: 500; flex: 1; }
+  .badge { font-size: 9px; font-family: var(--mono); padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 1px; }
+  .badge-critical { background: rgba(239,68,68,.2); color: var(--red); }
+  .badge-high { background: rgba(249,115,22,.2); color: var(--orange); }
+  .badge-medium { background: rgba(245,158,11,.2); color: var(--yellow); }
+  .badge-low { background: rgba(34,211,165,.2); color: var(--green); }
+  .badge-geo { background: rgba(124,58,237,.2); color: #a78bfa; }
+  .ri-meta { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
+
+  /* ── CHAT ── */
+  .chat-panel { display: flex; flex-direction: column; height: 100%; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 85%; display: flex; flex-direction: column; gap: 4px; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.bot { align-self: flex-start; }
+  .msg-bubble {
+    padding: 10px 14px; border-radius: 8px; font-size: 13px; line-height: 1.5;
+  }
+  .msg.user .msg-bubble { background: rgba(0,229,255,.15); border: 1px solid rgba(0,229,255,.3); color: var(--text); }
+  .msg.bot .msg-bubble { background: var(--bg); border: 1px solid var(--border); }
+  .msg-time { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .chat-input-area { padding: 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .chat-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 8px 12px; font-size: 13px; font-family: var(--sans); outline: none; }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-send { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-family: var(--mono); font-size: 11px; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel { border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .right-tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .rtab { flex: 1; padding: 12px; text-align: center; font-size: 11px; font-family: var(--mono); cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; transition: all .15s; }
+  .rtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .right-content { flex: 1; overflow-y: auto; }
+
+  /* ── TIMELINE ── */
+  .timeline { padding: 16px; display: flex; flex-direction: column; gap: 0; }
+  .tl-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+  .tl-item:not(:last-child)::before { content:''; position:absolute; left:7px; top:16px; bottom:0; width:1px; background: var(--border); }
+  .tl-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; border: 2px solid; }
+  .tl-dot.critical { background: rgba(239,68,68,.3); border-color: var(--red); }
+  .tl-dot.high { background: rgba(249,115,22,.3); border-color: var(--orange); }
+  .tl-dot.medium { background: rgba(245,158,11,.3); border-color: var(--yellow); }
+  .tl-body { flex: 1; }
+  .tl-title { font-size: 12px; font-weight: 500; }
+  .tl-date { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .tl-desc { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+
+  /* ── SCORE RING ── */
+  .score-section { display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .score-ring { position: relative; width: 120px; height: 120px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-family: var(--mono); font-size: 28px; line-height: 1; }
+  .score-label { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-overlay { position: absolute; inset: 0; background: rgba(10,14,26,.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 10; border-radius: 8px; backdrop-filter: blur(4px); }
+  .loading-text { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── WEATHER GRID ── */
+  .weather-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .weather-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+  .wc-city { font-size: 12px; font-weight: 600; }
+  .wc-desc { font-size: 11px; color: var(--muted); margin: 3px 0; }
+  .wc-temp { font-family: var(--mono); font-size: 20px; }
+  .wc-wind { font-size: 10px; color: var(--muted); }
+  .wc-severe { margin-top: 4px; font-size: 9px; padding: 2px 6px; border-radius: 2px; display: inline-block; }
+  .wc-severe.yes { background: rgba(239,68,68,.2); color: var(--red); }
+  .wc-severe.no { background: rgba(34,211,165,.2); color: var(--green); }
+
+  /* ── SCENARIO CARDS ── */
+  .scenario-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .scenario-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+  .sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .sc-title { font-size: 14px; font-weight: 600; }
+  .sc-scores { display: flex; gap: 16px; margin-bottom: 10px; }
+  .sc-score { text-align: center; }
+  .sc-score-val { font-family: var(--mono); font-size: 20px; }
+  .sc-score-lbl { font-size: 9px; color: var(--muted); }
+  .sc-section { margin-top: 8px; }
+  .sc-section-title { font-size: 9px; color: var(--muted); font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .sc-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .sc-pill { font-size: 10px; padding: 1px 8px; background: rgba(124,58,237,.2); color: #a78bfa; border-radius: 3px; }
+
+  /* ─ scrollbar ─ */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon"></div>
+    <span class="logo-text">SUPPLYGUARD // AI RISK INTELLIGENCE</span>
+  </div>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <span class="status-label" id="systemStatus">INITIALIZING...</span>
+    <button class="btn btn-secondary" onclick="refreshData()" style="padding:6px 12px;font-size:10px;">↻ REFRESH DATA</button>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section-label">Analysis</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2zm7 0h5v5H9zm-7 7h5v5H2zm7 0h5v5H9z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('assess',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l7 13H1zm0 3L3 12h10z"/></svg>
+      Risk Assessment
+    </div>
+    <div class="nav-item" onclick="showPage('scenarios',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 8C1 4.13 4.13 1 8 1s7 3.13 7 7-3.13 7-7 7-7-3.13-7-7zm7-3v4l3 1.5-.75 1.5L11 9.5V5z"/></svg>
+      Scenario Planning
+    </div>
+    <div class="nav-section-label">Data Sources</div>
+    <div class="nav-item" onclick="showPage('weather',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a4 4 0 0 1 4 4c0 1.5-.7 2.8-1.7 3.7L10 11H6l-.3-.3A4 4 0 0 1 4 8a4 4 0 0 1 4-4zm0 1a3 3 0 0 0-3 3c0 1.1.5 2 1.2 2.7L6.5 10h3l.3-.3A3 3 0 0 0 11 8a3 3 0 0 0-3-3zM6 12h4v1.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5z"/></svg>
+      Weather Alerts
+    </div>
+    <div class="nav-item" onclick="showPage('history',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 1a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM7 4h1v5l3 1.5-.5 1L7 10z"/></svg>
+      Historical Events
+    </div>
+    <div class="nav-section-label">Assistant</div>
+    <div class="nav-item" onclick="showPage('chat',this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v9H9l-3 3v-3H2zm1 1v7h3v2l2-2h5V3z"/></svg>
+      AI Chat
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content" id="mainContent">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">System Status</span>
+          <span id="lastRefresh" style="font-size:10px;color:var(--muted);font-family:var(--mono)">Loading...</span>
+        </div>
+        <div class="panel-body">
+          <div class="risk-overview" id="dashStats">
+            <div class="risk-card critical"><div class="rc-label">NEWS ALERTS</div><div class="rc-value" id="stat-news">—</div><div class="rc-sub">Filtered articles</div></div>
+            <div class="risk-card high"><div class="rc-label">WEATHER WATCHES</div><div class="rc-value" id="stat-weather">—</div><div class="rc-sub">Major ports</div></div>
+            <div class="risk-card medium"><div class="rc-label">SEVERE WEATHER</div><div class="rc-value" id="stat-severe">—</div><div class="rc-sub">Active alerts</div></div>
+            <div class="risk-card low"><div class="rc-label">HISTORICAL DB</div><div class="rc-value" id="stat-hist">—</div><div class="rc-sub">Disruption records</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Quick Risk Assessment</span></div>
+        <div class="panel-body" style="position:relative">
+          <div class="form-group">
+            <label class="form-label">FOCUS QUERY</label>
+            <textarea class="form-textarea" id="quickQuery" placeholder="e.g. Assess semiconductor supply chain risks in Asia Pacific...">Assess current supply chain risks for electronics manufacturing in Asia Pacific</textarea>
+          </div>
+          <button class="btn btn-primary" onclick="runQuickAssess()" id="quickAssessBtn">
+            <span>▶ RUN ASSESSMENT</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="dashResults" style="display:none">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Assessment Results</span>
+            <span class="badge" id="overallBadge"></span>
+          </div>
+          <div class="panel-body">
+            <p id="execSummary" style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:16px;"></p>
+            <div class="risk-list" id="riskList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSESS -->
+    <div id="page-assess" class="page">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Company Profile + Risk Query</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">COMPANY NAME</label>
+              <input class="form-input" id="companyName" value="Acme Electronics Ltd" placeholder="Company name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">INDUSTRY</label>
+              <select class="form-select" id="companyIndustry">
+                <option>Electronics</option>
+                <option>Automotive</option>
+                <option>Pharma</option>
+                <option>Food & Beverage</option>
+                <option>Retail</option>
+                <option>Energy</option>
+                <option>Manufacturing</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">KEY REGIONS</label>
+            <div class="form-tags" id="regionTags">
+              <span class="tag remove" onclick="removeTag(this,'regionTags')">Asia Pacific</span>
+              <span class="tag remove" onclick="removeTag(this,'regionTags')">Europe</span>
+            </div>
+            <input class="form-input" style="margin-top:6px" placeholder="Add region... (press Enter)" onkeydown="addTag(event,'regionTags',this)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CRITICAL INPUTS / MATERIALS</label>
+            <div class="form-tags" id="inputTags">
+              <span class="tag remove" onclick="removeTag(this,'inputTags')">semiconductors</span>
+              <span class="tag remove" onclick="removeTag(this,'inputTags')">rare earth metals</span>
+            </div>
+            <input class="form-input" style="margin-top:6px" placeholder="Add material... (press Enter)" onkeydown="addTag(event,'inputTags',this)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RISK QUERY</label>
+            <textarea class="form-textarea" id="assessQuery">What are the top supply chain risks for our operations over the next 6 months?</textarea>
+          </div>
+          <button class="btn btn-primary" onclick="runFullAssessment()" id="fullAssessBtn">▶ FULL ASSESSMENT</button>
+        </div>
+      </div>
+      <div id="fullAssessResults" style="display:none">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Full Risk Report</span>
+            <span id="fullOverallBadge" class="badge"></span>
+          </div>
+          <div class="panel-body">
+            <p id="fullExecSummary" style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:16px;"></p>
+            <div class="risk-list" id="fullRiskList"></div>
+          </div>
+        </div>
+        <div class="panel" id="mitigationPanel">
+          <div class="panel-header"><span class="panel-title">Mitigation Strategies</span></div>
+          <div class="panel-body" id="mitigationList"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Immediate Actions</span></div>
+          <div class="panel-body" id="immediateActions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIOS -->
+    <div id="page-scenarios" class="page">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Scenario Parameters</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">SCENARIO TYPE</label>
+              <select class="form-select" id="scenarioType">
+                <option value="natural_disaster">Natural Disaster</option>
+                <option value="geopolitical">Geopolitical Event</option>
+                <option value="pandemic">Pandemic / Health Crisis</option>
+                <option value="labor">Labor Dispute / Strike</option>
+                <option value="cyber">Cyber Attack</option>
+                <option value="economic">Economic Downturn</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">REGION</label>
+              <select class="form-select" id="scenarioRegion">
+                <option>Asia Pacific</option>
+                <option>Europe</option>
+                <option>North America</option>
+                <option>Middle East</option>
+                <option>Southeast Asia</option>
+                <option>Latin America</option>
+                <option>Africa</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">INDUSTRY</label>
+            <select class="form-select" id="scenarioIndustry">
+              <option>Electronics</option>
+              <option>Automotive</option>
+              <option>Pharma</option>
+              <option>Food & Beverage</option>
+              <option>Retail</option>
+              <option>Energy</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="runScenarios()" id="scenarioBtn">⚡ GENERATE SCENARIOS</button>
+        </div>
+      </div>
+      <div class="scenario-grid" id="scenarioResults"></div>
+    </div>
+
+    <!-- WEATHER -->
+    <div id="page-weather" class="page">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Port & Logistics Hub Weather</span>
+          <button class="btn btn-secondary" onclick="loadWeather()" style="padding:4px 10px;font-size:10px;">REFRESH</button>
+        </div>
+        <div class="panel-body">
+          <div class="weather-grid" id="weatherGrid">
+            <div class="empty-state"><div class="icon">🌍</div>Loading weather data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="page-history" class="page">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Historical Disruption Database</span></div>
+        <div class="panel-body">
+          <div class="risk-list" id="historyList">
+            <div class="empty-state">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="page-chat" class="page">
+      <div class="panel" style="flex:1;display:flex;flex-direction:column;">
+        <div class="panel-header"><span class="panel-title">AI Risk Intelligence Chat</span></div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">
+            <div class="msg-bubble">Hello! I'm your Supply Chain Risk Intelligence Assistant. Ask me anything about current risks, historical disruptions, weather impacts, or mitigation strategies.</div>
+            <div class="msg-time">System</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input class="chat-input" id="chatInput" placeholder="Ask about supply chain risks..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" onclick="sendChat()">SEND</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="right-tabs">
+      <div class="rtab active" onclick="showRTab('rtab-timeline',this)">Timeline</div>
+      <div class="rtab" onclick="showRTab('rtab-indicators',this)">Indicators</div>
+    </div>
+    <div class="right-content">
+      <div id="rtab-timeline" class="rtab-content">
+        <div class="timeline" id="historicalTimeline"></div>
+      </div>
+      <div id="rtab-indicators" class="rtab-content" style="display:none;padding:16px;">
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:12px;">EARLY WARNING INDICATORS</div>
+        <div id="warningIndicators">
+          <div class="empty-state">Run an assessment to see early warning indicators.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let currentAssessment = null;
+
+// ── INIT ──
+async function init() {
+  await loadSystemStatus();
+  await loadDashStats();
+  loadHistoricalTimeline();
+  loadWeather();
+  loadHistoryPage();
+}
+
+async function loadSystemStatus() {
+  try {
+    const r = await fetch(`${API}/api/health`);
+    const d = await r.json();
+    const el = document.getElementById('systemStatus');
+    if (d.status === 'ok' && d.vector_store === 'ready') {
+      el.textContent = 'SYSTEM ONLINE';
+      el.style.color = 'var(--green)';
+    } else {
+      el.textContent = d.api_key_set ? 'VECTOR STORE LOADING' : 'API KEY MISSING';
+      el.style.color = 'var(--yellow)';
+    }
+  } catch(e) {
+    document.getElementById('systemStatus').textContent = 'BACKEND OFFLINE';
+    document.getElementById('systemStatus').style.color = 'var(--red)';
+  }
+}
+
+async function loadDashStats() {
+  try {
+    const r = await fetch(`${API}/api/data-summary`);
+    const d = await r.json();
+    document.getElementById('stat-news').textContent = d.news_articles ?? '—';
+    document.getElementById('stat-weather').textContent = d.weather_readings ?? '—';
+    document.getElementById('stat-severe').textContent = d.severe_weather?.length ?? '—';
+    document.getElementById('stat-hist').textContent = d.historical_events ?? '—';
+    document.getElementById('lastRefresh').textContent = 'Last refresh: ' + (d.last_refresh?.slice(0,19) ?? 'N/A');
+  } catch(e) {}
+}
+
+// ── NAVIGATION ──
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+function showRTab(id, el) {
+  document.querySelectorAll('.rtab-content').forEach(c => c.style.display='none');
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  el.classList.add('active');
+}
+
+// ── QUICK ASSESSMENT ──
+async function runQuickAssess() {
+  const btn = document.getElementById('quickAssessBtn');
+  const query = document.getElementById('quickQuery').value;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> ANALYZING...';
+  try {
+    const r = await fetch(`${API}/api/assess-risk`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query })
+    });
+    const d = await r.json();
+    if (d.success) renderAssessment(d.data, 'dash');
+  } catch(e) { alert('Error: ' + e.message); }
+  btn.disabled = false;
+  btn.innerHTML = '<span>▶ RUN ASSESSMENT</span>';
+}
+
+// ── FULL ASSESSMENT ──
+async function runFullAssessment() {
+  const btn = document.getElementById('fullAssessBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> RUNNING...';
+  const profile = {
+    name: document.getElementById('companyName').value,
+    industry: document.getElementById('companyIndustry').value,
+    regions: getTags('regionTags'),
+    key_suppliers: [],
+    critical_inputs: getTags('inputTags'),
+  };
+  try {
+    const r = await fetch(`${API}/api/assess-risk`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query: document.getElementById('assessQuery').value, company_profile: profile })
+    });
+    const d = await r.json();
+    if (d.success) renderAssessment(d.data, 'full');
+  } catch(e) { alert('Error: ' + e.message); }
+  btn.disabled = false; btn.innerHTML = '▶ FULL ASSESSMENT';
+}
+
+function renderAssessment(data, mode) {
+  const prefix = mode === 'dash' ? '' : 'full';
+  const badge = document.getElementById(prefix ? 'fullOverallBadge' : 'overallBadge');
+  const rl = mode === 'dash' ? 'riskList' : 'fullRiskList';
+  const es = mode === 'dash' ? 'execSummary' : 'fullExecSummary';
+
+  const level = (data.overall_risk_level || 'MEDIUM').toLowerCase();
+  badge.textContent = data.overall_risk_level + ' — ' + (data.risk_score || '?') + '/100';
+  badge.className = 'badge badge-' + level;
+  document.getElementById(es).textContent = data.executive_summary || '';
+
+  const list = document.getElementById(rl);
+  list.innerHTML = '';
+  (data.identified_risks || []).forEach(r => {
+    const sev = (r.severity || 'medium').toLowerCase();
+    list.innerHTML += `
+      <div class="risk-item ${sev}">
+        <div class="ri-header">
+          <span class="ri-id">${r.risk_id}</span>
+          <span class="ri-title">${r.title}</span>
+          <span class="badge badge-${sev}">${r.severity}</span>
+          <span class="badge badge-geo">${r.category}</span>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.4">${r.description}</p>
+        <div class="ri-meta">
+          <span>📍 ${(r.affected_regions||[]).join(', ')}</span>
+          <span>⏱ ${r.time_horizon||''}</span>
+          <span>📊 Prob: ${r.probability}</span>
+        </div>
+      </div>`;
+  });
+
+  if (mode === 'full') {
+    // Mitigation
+    const ml = document.getElementById('mitigationList');
+    ml.innerHTML = '';
+    (data.mitigation_strategies || []).forEach(m => {
+      ml.innerHTML += `
+        <div style="margin-bottom:14px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px;">
+            <span style="color:var(--muted);font-family:var(--mono);font-size:10px;">${m.risk_id} // </span>${m.strategy}
+          </div>
+          <ul style="padding-left:16px;color:var(--muted);font-size:12px;line-height:1.8;">
+            ${(m.actions||[]).map(a=>`<li>${a}</li>`).join('')}
+          </ul>
+          <div style="margin-top:6px;font-size:10px;color:var(--muted)">Timeline: ${m.timeline} | Cost: ${m.cost_estimate}</div>
+        </div>`;
+    });
+
+    // Immediate actions
+    const ia = document.getElementById('immediateActions');
+    ia.innerHTML = (data.recommended_immediate_actions || []).map((a,i)=>
+      `<div style="display:flex;gap:10px;margin-bottom:8px;font-size:13px;">
+        <span style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-top:2px;">0${i+1}</span>
+        <span>${a}</span>
+      </div>`
+    ).join('');
+
+    document.getElementById('fullAssessResults').style.display = 'block';
+
+    // Update indicators panel
+    const wi = document.getElementById('warningIndicators');
+    wi.innerHTML = (data.early_warning_indicators || []).map(ind =>
+      `<div style="display:flex;gap:8px;margin-bottom:10px;font-size:12px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;">
+        <span style="color:var(--yellow)">⚠</span><span>${ind}</span>
+      </div>`
+    ).join('');
+  } else {
+    document.getElementById('dashResults').style.display = 'block';
+  }
+}
+
+// ── SCENARIOS ──
+async function runScenarios() {
+  const btn = document.getElementById('scenarioBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> GENERATING...';
+  try {
+    const r = await fetch(`${API}/api/generate-scenarios`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        scenario_type: document.getElementById('scenarioType').value,
+        region: document.getElementById('scenarioRegion').value,
+        industry: document.getElementById('scenarioIndustry').value,
+      })
+    });
+    const d = await r.json();
+    if (d.success) renderScenarios(d.data);
+  } catch(e) { alert('Error: ' + e.message); }
+  btn.disabled = false; btn.innerHTML = '⚡ GENERATE SCENARIOS';
+}
+
+function renderScenarios(data) {
+  const container = document.getElementById('scenarioResults');
+  container.innerHTML = '';
+  (data.scenarios || []).forEach(s => {
+    const probColor = s.probability_score > 7 ? 'var(--red)' : s.probability_score > 4 ? 'var(--yellow)' : 'var(--green)';
+    container.innerHTML += `
+      <div class="scenario-card panel">
+        <div class="sc-header">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.scenario_id}</span>
+          <span class="sc-title">${s.title}</span>
+        </div>
+        <div class="sc-scores">
+          <div class="sc-score">
+            <div class="sc-score-val" style="color:${probColor}">${s.probability_score}/10</div>
+            <div class="sc-score-lbl">PROBABILITY</div>
+          </div>
+          <div class="sc-score">
+            <div class="sc-score-val" style="color:var(--orange)">${s.severity_score}/10</div>
+            <div class="sc-score-lbl">SEVERITY</div>
+          </div>
+          <div class="sc-score">
+            <div class="sc-score-val">${s.estimated_recovery_days}d</div>
+            <div class="sc-score-lbl">RECOVERY</div>
+          </div>
+          <div class="sc-score">
+            <div class="sc-score-val" style="font-size:14px">$${s.financial_impact_usd_millions}M</div>
+            <div class="sc-score-lbl">IMPACT</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${s.narrative}</p>
+        <div class="sc-section">
+          <div class="sc-section-title">Cascade Effects</div>
+          <div class="sc-pills">${(s.cascade_effects||[]).map(e=>`<span class="sc-pill">${e}</span>`).join('')}</div>
+        </div>
+        <div class="sc-section" style="margin-top:6px">
+          <div class="sc-section-title">Historical Analog</div>
+          <div style="font-size:11px;color:var(--muted)">${s.historical_analog||'—'}</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ── WEATHER ──
+async function loadWeather() {
+  try {
+    const r = await fetch(`${API}/api/current-weather`);
+    const d = await r.json();
+    const grid = document.getElementById('weatherGrid');
+    grid.innerHTML = '';
+    (d.data || []).forEach(w => {
+      grid.innerHTML += `
+        <div class="weather-card">
+          <div class="wc-city">${w.city}</div>
+          <div class="wc-desc">${w.description}</div>
+          <div class="wc-temp">${w.temp_c}°C</div>
+          <div class="wc-wind">💨 ${w.wind_kmh} km/h</div>
+          <span class="wc-severe ${w.is_severe?'yes':'no'}">${w.is_severe?'⚠ ALERT':'✓ CLEAR'}</span>
+        </div>`;
+    });
+  } catch(e) {}
+}
+
+// ── HISTORY PAGE ──
+async function loadHistoryPage() {
+  try {
+    const r = await fetch(`${API}/api/historical-disruptions`);
+    const d = await r.json();
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+    (d.data || []).forEach(ev => {
+      const sev = ev.severity || 'medium';
+      list.innerHTML += `
+        <div class="risk-item ${sev}">
+          <div class="ri-header">
+            <span class="ri-title">${ev.event}</span>
+            <span class="badge badge-${sev}">${ev.severity?.toUpperCase()}</span>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.4">${ev.impact}</p>
+          <div class="ri-meta">
+            <span>📅 ${ev.date}</span>
+            <span>📍 ${ev.region}</span>
+            <span>⏱ ${ev.resolution_days}d recovery</span>
+            <span>🏭 ${(ev.affected_sectors||[]).join(', ')}</span>
+          </div>
+        </div>`;
+    });
+  } catch(e) {}
+}
+
+// ── TIMELINE ──
+async function loadHistoricalTimeline() {
+  try {
+    const r = await fetch(`${API}/api/historical-disruptions`);
+    const d = await r.json();
+    const tl = document.getElementById('historicalTimeline');
+    const events = (d.data || []).slice(0, 8);
+    tl.innerHTML = events.map(ev => `
+      <div class="tl-item">
+        <div class="tl-dot ${ev.severity}"></div>
+        <div class="tl-body">
+          <div class="tl-title">${ev.event}</div>
+          <div class="tl-date">${ev.date} · ${ev.region}</div>
+          <div class="tl-desc">${ev.impact.slice(0,80)}...</div>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── CHAT ──
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  appendChat('user', msg);
+  appendChat('bot', '...');
+
+  try {
+    const r = await fetch(`${API}/api/chat`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ message: msg })
+    });
+    const d = await r.json();
+    const messages = document.getElementById('chatMessages');
+    messages.lastElementChild.remove();
+    appendChat('bot', d.answer || 'No response');
+  } catch(e) {
+    const messages = document.getElementById('chatMessages');
+    messages.lastElementChild.remove();
+    appendChat('bot', 'Error contacting server. Is the backend running?');
+  }
+}
+
+function appendChat(role, text) {
+  const m = document.getElementById('chatMessages');
+  const t = new Date().toLocaleTimeString();
+  m.innerHTML += `
+    <div class="msg ${role}">
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-time">${t}</div>
+    </div>`;
+  m.scrollTop = m.scrollHeight;
+}
+
+// ── UTILS ──
+function getTags(containerId) {
+  return Array.from(document.querySelectorAll(`#${containerId} .tag`)).map(t => t.textContent.replace(' ×','').trim());
+}
+function addTag(e, containerId, input) {
+  if (e.key === 'Enter' && input.value.trim()) {
+    const container = document.getElementById(containerId);
+    const tag = document.createElement('span');
+    tag.className = 'tag remove';
+    tag.onclick = function() { removeTag(this, containerId); };
+    tag.textContent = input.value.trim();
+    container.appendChild(tag);
+    input.value = '';
+  }
+}
+function removeTag(el, containerId) { el.remove(); }
+
+async function refreshData() {
+  const btn = document.querySelector('.header-right .btn-secondary');
+  btn.textContent = 'Refreshing...';
+  btn.disabled = true;
+  try {
+    await fetch(`${API}/api/refresh-data`, { method: 'POST' });
+    setTimeout(() => { loadDashStats(); loadSystemStatus(); }, 3000);
+  } catch(e) {}
+  setTimeout(() => { btn.textContent = '↻ REFRESH DATA'; btn.disabled = false; }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>
