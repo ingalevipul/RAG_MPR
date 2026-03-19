@@ -70,9 +70,9 @@ MAJOR_SUPPLY_CHAIN_CITIES = [
     {"name": "Singapore",   "lat":  1.3521, "lon": 103.8198},
     {"name": "Los Angeles", "lat": 34.0522, "lon": -118.2437},
     {"name": "Dubai",       "lat": 25.2048, "lon":  55.2708},
-    {"name": "Tokyo",       "lat": 35.6762, "lon": 139.6503},
+    {"name": "Navi Mumbai", "lat": 19.0760, "lon":  72.8777},
     {"name": "Mumbai",      "lat": 19.0760, "lon":  72.8777},
-    {"name": "Hamburg",     "lat": 53.5511, "lon":   9.9937},
+    {"name": "Surat",       "lat": 21.1702, "lon":  72.8311},
 ]
 
 SEVERE_WEATHER_CODES = {

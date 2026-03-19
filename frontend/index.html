@@ -7,257 +7,175 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ── TOKENS ── */
   :root {
-    --bg:       #0a0e1a;
-    --surface:  #111827;
-    --border:   #1f2d45;
-    --accent:   #00e5ff;
-    --accent2:  #7c3aed;
-    --green:    #22d3a5;
-    --yellow:   #f59e0b;
-    --orange:   #f97316;
-    --red:      #ef4444;
-    --text:     #e2e8f0;
-    --muted:    #64748b;
-    --mono:     'Space Mono', monospace;
-    --sans:     'DM Sans', sans-serif;
+    --bg:#0a0e1a; --surface:#111827; --border:#1f2d45;
+    --accent:#00e5ff; --accent2:#7c3aed; --green:#22d3a5;
+    --yellow:#f59e0b; --orange:#f97316; --red:#ef4444;
+    --text:#e2e8f0; --muted:#64748b;
+    --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif;
   }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:0;
+    background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+    background-size:40px 40px;pointer-events:none}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+  .app{position:relative;z-index:1;display:grid;grid-template-rows:60px 1fr;height:100vh}
 
-  /* ── GRID LINES BG ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-  }
+  header{display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+    background:rgba(17,24,39,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-icon{width:28px;height:28px;background:var(--accent);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+  .logo-text{font-family:var(--mono);font-size:14px;letter-spacing:2px;color:var(--accent)}
+  .header-right{display:flex;align-items:center;gap:16px}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .status-label{font-size:11px;color:var(--muted);font-family:var(--mono)}
 
-  /* ── LAYOUT ── */
-  .app { position: relative; z-index: 1; display: grid; grid-template-rows: 60px 1fr; height: 100vh; }
+  .main{display:grid;grid-template-columns:220px 1fr 320px;overflow:hidden}
 
-  /* ── HEADER ── */
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 24px;
-    background: rgba(17,24,39,.9);
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon { width: 28px; height: 28px; background: var(--accent); clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); }
-  .logo-text { font-family: var(--mono); font-size: 14px; letter-spacing: 2px; color: var(--accent); }
-  .header-right { display: flex; align-items: center; gap: 16px; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  .status-label { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+  .nav-section-label{font-size:9px;letter-spacing:2px;color:var(--muted);padding:12px 20px 6px;font-family:var(--mono);text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;border-left:2px solid transparent}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+  .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,229,255,.05)}
 
-  /* ── MAIN CONTENT ── */
-  .main { display: grid; grid-template-columns: 220px 1fr 340px; overflow: hidden; }
+  .content{overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
 
-  /* ── SIDEBAR ── */
-  .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 20px 0;
-    display: flex; flex-direction: column; gap: 4px;
-    overflow-y: auto;
-  }
-  .nav-section-label { font-size: 9px; letter-spacing: 2px; color: var(--muted); padding: 12px 20px 6px; font-family: var(--mono); text-transform: uppercase; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 20px; cursor: pointer;
-    font-size: 13px; color: var(--muted);
-    transition: all .15s; border-left: 2px solid transparent;
-  }
-  .nav-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
-  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,229,255,.05); }
-  .nav-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .panel-title{font-size:11px;font-family:var(--mono);letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .panel-body{padding:18px}
 
-  /* ── CONTENT ── */
-  .content { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .risk-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .risk-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;position:relative;overflow:hidden}
+  .risk-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+  .risk-card.c1::before{background:var(--red)} .risk-card.c2::before{background:var(--orange)}
+  .risk-card.c3::before{background:var(--yellow)} .risk-card.c4::before{background:var(--green)}
+  .rc-label{font-size:9px;letter-spacing:2px;color:var(--muted);font-family:var(--mono)}
+  .rc-value{font-size:28px;font-family:var(--mono);margin:4px 0}
+  .rc-sub{font-size:11px;color:var(--muted)}
+  .c1 .rc-value{color:var(--red)} .c2 .rc-value{color:var(--orange)}
+  .c3 .rc-value{color:var(--yellow)} .c4 .rc-value{color:var(--green)}
 
-  /* ── PANEL ── */
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .panel-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .panel-title { font-size: 11px; font-family: var(--mono); letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
-  .panel-body { padding: 18px; }
+  .form-group{margin-bottom:14px}
+  .form-label{font-size:11px;color:var(--muted);font-family:var(--mono);display:block;margin-bottom:6px}
+  .form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:8px 12px;font-size:13px;font-family:var(--sans);transition:border .15s;outline:none}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+  .form-textarea{min-height:70px;resize:vertical}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .tag{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:3px;cursor:pointer;font-family:var(--mono)}
 
-  /* ── RISK METER ── */
-  .risk-overview { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
-  .risk-card {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; padding: 14px;
-    position: relative; overflow: hidden;
-  }
-  .risk-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
-  .risk-card.critical::before { background: var(--red); }
-  .risk-card.high::before { background: var(--orange); }
-  .risk-card.medium::before { background: var(--yellow); }
-  .risk-card.low::before { background: var(--green); }
-  .rc-label { font-size: 9px; letter-spacing: 2px; color: var(--muted); font-family: var(--mono); }
-  .rc-value { font-size: 28px; font-family: var(--mono); margin: 4px 0; }
-  .rc-sub { font-size: 11px; color: var(--muted); }
-  .critical .rc-value { color: var(--red); }
-  .high .rc-value { color: var(--orange); }
-  .medium .rc-value { color: var(--yellow); }
-  .low .rc-value { color: var(--green); }
+  .btn{display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none;border-radius:4px;font-family:var(--mono);font-size:12px;letter-spacing:1px;padding:10px 20px;transition:all .15s;text-transform:uppercase}
+  .btn-primary{background:var(--accent);color:#000}
+  .btn-primary:hover{background:#33eeff;transform:translateY(-1px)}
+  .btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .btn-secondary:hover{background:rgba(0,229,255,.1)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+  .spinner{width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── FORM ── */
-  .form-group { margin-bottom: 14px; }
-  .form-label { font-size: 11px; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 6px; }
-  .form-input, .form-select, .form-textarea {
-    width: 100%; background: var(--bg); border: 1px solid var(--border);
-    color: var(--text); border-radius: 4px; padding: 8px 12px; font-size: 13px;
-    font-family: var(--sans); transition: border .15s; outline: none;
-  }
-  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
-  .form-textarea { min-height: 80px; resize: vertical; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .form-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .tag {
-    background: rgba(0,229,255,.1); border: 1px solid rgba(0,229,255,.2);
-    color: var(--accent); font-size: 11px; padding: 2px 8px; border-radius: 3px;
-    cursor: pointer; font-family: var(--mono);
-  }
-  .tag.remove::after { content: ' ×'; }
+  /* risk items */
+  .risk-list{display:flex;flex-direction:column;gap:10px}
+  .risk-item{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;border-left:3px solid transparent;transition:border-color .15s}
+  .risk-item:hover{border-color:rgba(0,229,255,.4)}
+  .risk-item.CRITICAL,.risk-item.critical{border-left-color:var(--red)}
+  .risk-item.HIGH,.risk-item.high{border-left-color:var(--orange)}
+  .risk-item.MEDIUM,.risk-item.medium{border-left-color:var(--yellow)}
+  .risk-item.LOW,.risk-item.low{border-left-color:var(--green)}
+  .ri-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .ri-id{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .ri-title{font-size:13px;font-weight:500;flex:1}
+  .ri-meta{display:flex;gap:12px;font-size:11px;color:var(--muted);flex-wrap:wrap;margin-top:6px}
 
-  /* ── BUTTON ── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-    border: none; border-radius: 4px; font-family: var(--mono); font-size: 12px;
-    letter-spacing: 1px; padding: 10px 20px; transition: all .15s;
-    text-transform: uppercase;
-  }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-primary:hover { background: #33eeff; transform: translateY(-1px); }
-  .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-  .btn-secondary:hover { background: rgba(0,229,255,.1); }
-  .btn-danger { background: var(--red); color: #fff; }
-  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
-  .spinner { width: 12px; height: 12px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .badge{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:1px}
+  .badge-CRITICAL,.badge-critical{background:rgba(239,68,68,.2);color:var(--red)}
+  .badge-HIGH,.badge-high{background:rgba(249,115,22,.2);color:var(--orange)}
+  .badge-MEDIUM,.badge-medium{background:rgba(245,158,11,.2);color:var(--yellow)}
+  .badge-LOW,.badge-low{background:rgba(34,211,165,.2);color:var(--green)}
+  .badge-cat{background:rgba(124,58,237,.2);color:#a78bfa}
 
-  /* ── RISK ITEMS ── */
-  .risk-list { display: flex; flex-direction: column; gap: 10px; }
-  .risk-item {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-    padding: 14px; cursor: pointer; transition: border-color .15s;
-    border-left: 3px solid transparent;
-  }
-  .risk-item:hover { border-color: var(--accent); }
-  .risk-item.critical { border-left-color: var(--red); }
-  .risk-item.high { border-left-color: var(--orange); }
-  .risk-item.medium { border-left-color: var(--yellow); }
-  .risk-item.low { border-left-color: var(--green); }
-  .ri-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .ri-id { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-  .ri-title { font-size: 13px; font-weight: 500; flex: 1; }
-  .badge { font-size: 9px; font-family: var(--mono); padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 1px; }
-  .badge-critical { background: rgba(239,68,68,.2); color: var(--red); }
-  .badge-high { background: rgba(249,115,22,.2); color: var(--orange); }
-  .badge-medium { background: rgba(245,158,11,.2); color: var(--yellow); }
-  .badge-low { background: rgba(34,211,165,.2); color: var(--green); }
-  .badge-geo { background: rgba(124,58,237,.2); color: #a78bfa; }
-  .ri-meta { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
+  /* chat */
+  .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 60px - 48px - 2px)}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:85%;display:flex;flex-direction:column;gap:4px}
+  .msg.user{align-self:flex-end;align-items:flex-end}
+  .msg.bot{align-self:flex-start}
+  .msg-bubble{padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.5;white-space:pre-wrap}
+  .msg.user .msg-bubble{background:rgba(0,229,255,.15);border:1px solid rgba(0,229,255,.3)}
+  .msg.bot .msg-bubble{background:var(--bg);border:1px solid var(--border)}
+  .msg-time{font-size:10px;color:var(--muted);font-family:var(--mono)}
+  .chat-input-area{padding:14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--surface)}
+  .chat-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none}
+  .chat-input:focus{border-color:var(--accent)}
+  .chat-send{background:var(--accent);color:#000;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:11px}
 
-  /* ── CHAT ── */
-  .chat-panel { display: flex; flex-direction: column; height: 100%; }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .msg { max-width: 85%; display: flex; flex-direction: column; gap: 4px; }
-  .msg.user { align-self: flex-end; align-items: flex-end; }
-  .msg.bot { align-self: flex-start; }
-  .msg-bubble {
-    padding: 10px 14px; border-radius: 8px; font-size: 13px; line-height: 1.5;
-  }
-  .msg.user .msg-bubble { background: rgba(0,229,255,.15); border: 1px solid rgba(0,229,255,.3); color: var(--text); }
-  .msg.bot .msg-bubble { background: var(--bg); border: 1px solid var(--border); }
-  .msg-time { font-size: 10px; color: var(--muted); font-family: var(--mono); }
-  .chat-input-area { padding: 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
-  .chat-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 8px 12px; font-size: 13px; font-family: var(--sans); outline: none; }
-  .chat-input:focus { border-color: var(--accent); }
-  .chat-send { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-family: var(--mono); font-size: 11px; }
+  /* right panel */
+  .right-panel{border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .right-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+  .rtab{flex:1;padding:12px;text-align:center;font-size:11px;font-family:var(--mono);cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s}
+  .rtab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .right-content{flex:1;overflow-y:auto}
+  .rtab-content{display:none} .rtab-content.active{display:block}
 
-  /* ── RIGHT PANEL ── */
-  .right-panel { border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-  .right-tabs { display: flex; border-bottom: 1px solid var(--border); }
-  .rtab { flex: 1; padding: 12px; text-align: center; font-size: 11px; font-family: var(--mono); cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; transition: all .15s; }
-  .rtab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .right-content { flex: 1; overflow-y: auto; }
+  /* timeline */
+  .timeline{padding:16px;display:flex;flex-direction:column}
+  .tl-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+  .tl-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:16px;bottom:0;width:1px;background:var(--border)}
+  .tl-dot{width:15px;height:15px;border-radius:50%;flex-shrink:0;margin-top:2px;border:2px solid}
+  .tl-dot.critical,.tl-dot.CRITICAL{background:rgba(239,68,68,.3);border-color:var(--red)}
+  .tl-dot.high,.tl-dot.HIGH{background:rgba(249,115,22,.3);border-color:var(--orange)}
+  .tl-dot.medium,.tl-dot.MEDIUM{background:rgba(245,158,11,.3);border-color:var(--yellow)}
+  .tl-body{flex:1}
+  .tl-title{font-size:12px;font-weight:500}
+  .tl-date{font-size:10px;color:var(--muted);font-family:var(--mono)}
+  .tl-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
 
-  /* ── TIMELINE ── */
-  .timeline { padding: 16px; display: flex; flex-direction: column; gap: 0; }
-  .tl-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
-  .tl-item:not(:last-child)::before { content:''; position:absolute; left:7px; top:16px; bottom:0; width:1px; background: var(--border); }
-  .tl-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; border: 2px solid; }
-  .tl-dot.critical { background: rgba(239,68,68,.3); border-color: var(--red); }
-  .tl-dot.high { background: rgba(249,115,22,.3); border-color: var(--orange); }
-  .tl-dot.medium { background: rgba(245,158,11,.3); border-color: var(--yellow); }
-  .tl-body { flex: 1; }
-  .tl-title { font-size: 12px; font-weight: 500; }
-  .tl-date { font-size: 10px; color: var(--muted); font-family: var(--mono); }
-  .tl-desc { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  /* scenario cards */
+  .scenario-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+  .sc-scores{display:flex;gap:16px;margin:10px 0}
+  .sc-score{text-align:center}
+  .sc-score-val{font-family:var(--mono);font-size:20px}
+  .sc-score-lbl{font-size:9px;color:var(--muted)}
+  .sc-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .sc-pill{font-size:10px;padding:1px 8px;background:rgba(124,58,237,.2);color:#a78bfa;border-radius:3px}
 
-  /* ── SCORE RING ── */
-  .score-section { display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .score-ring { position: relative; width: 120px; height: 120px; }
-  .score-ring svg { transform: rotate(-90deg); }
-  .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .score-num { font-family: var(--mono); font-size: 28px; line-height: 1; }
-  .score-label { font-size: 9px; color: var(--muted); font-family: var(--mono); }
+  /* weather */
+  .weather-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .weather-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px}
+  .wc-city{font-size:12px;font-weight:600}
+  .wc-desc{font-size:11px;color:var(--muted);margin:3px 0;text-transform:capitalize}
+  .wc-temp{font-family:var(--mono);font-size:20px}
+  .wc-wind{font-size:10px;color:var(--muted)}
+  .wc-badge{margin-top:4px;font-size:9px;padding:2px 6px;border-radius:2px;display:inline-block;font-family:var(--mono)}
+  .wc-badge.severe{background:rgba(239,68,68,.2);color:var(--red)}
+  .wc-badge.clear{background:rgba(34,211,165,.2);color:var(--green)}
 
-  /* ── LOADING OVERLAY ── */
-  .loading-overlay { position: absolute; inset: 0; background: rgba(10,14,26,.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 10; border-radius: 8px; backdrop-filter: blur(4px); }
-  .loading-text { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  /* pages */
+  .page{display:none}
+  .page.active{display:flex;flex-direction:column;gap:20px}
 
-  /* ── EMPTY STATE ── */
-  .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
-  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+  /* debug */
+  .debug-box{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:12px;font-family:var(--mono);font-size:11px;color:#8b949e;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;display:none}
+  .debug-box.visible{display:block}
 
-  /* ── PAGES ── */
-  .page { display: none; }
-  .page.active { display: flex; flex-direction: column; gap: 20px; }
+  /* empty */
+  .empty-state{padding:32px;text-align:center;color:var(--muted);font-size:13px}
 
-  /* ── WEATHER GRID ── */
-  .weather-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-  .weather-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
-  .wc-city { font-size: 12px; font-weight: 600; }
-  .wc-desc { font-size: 11px; color: var(--muted); margin: 3px 0; }
-  .wc-temp { font-family: var(--mono); font-size: 20px; }
-  .wc-wind { font-size: 10px; color: var(--muted); }
-  .wc-severe { margin-top: 4px; font-size: 9px; padding: 2px 6px; border-radius: 2px; display: inline-block; }
-  .wc-severe.yes { background: rgba(239,68,68,.2); color: var(--red); }
-  .wc-severe.no { background: rgba(34,211,165,.2); color: var(--green); }
+  /* mitigation */
+  .mitigation-item{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px}
+  .action-item{display:flex;gap:10px;margin-bottom:8px;font-size:13px;align-items:flex-start}
+  .action-num{color:var(--accent);font-family:var(--mono);font-size:10px;margin-top:2px;flex-shrink:0}
 
-  /* ── SCENARIO CARDS ── */
-  .scenario-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-  .scenario-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
-  .sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .sc-title { font-size: 14px; font-weight: 600; }
-  .sc-scores { display: flex; gap: 16px; margin-bottom: 10px; }
-  .sc-score { text-align: center; }
-  .sc-score-val { font-family: var(--mono); font-size: 20px; }
-  .sc-score-lbl { font-size: 9px; color: var(--muted); }
-  .sc-section { margin-top: 8px; }
-  .sc-section-title { font-size: 9px; color: var(--muted); font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
-  .sc-pills { display: flex; flex-wrap: wrap; gap: 4px; }
-  .sc-pill { font-size: 10px; padding: 1px 8px; background: rgba(124,58,237,.2); color: #a78bfa; border-radius: 3px; }
-
-  /* ─ scrollbar ─ */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- ── HEADER ── -->
 <header>
   <div class="logo">
     <div class="logo-icon"></div>
@@ -265,87 +183,67 @@
   </div>
   <div class="header-right">
     <div class="status-dot"></div>
-    <span class="status-label" id="systemStatus">INITIALIZING...</span>
-    <button class="btn btn-secondary" onclick="refreshData()" style="padding:6px 12px;font-size:10px;">↻ REFRESH DATA</button>
+    <span class="status-label" id="systemStatus">CHECKING...</span>
+    <button class="btn btn-secondary" onclick="refreshData()" style="padding:6px 12px;font-size:10px;">↻ REFRESH</button>
   </div>
 </header>
 
-<!-- ── MAIN ── -->
 <div class="main">
 
   <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="nav-section-label">Analysis</div>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2zm7 0h5v5H9zm-7 7h5v5H2zm7 0h5v5H9z"/></svg>
-      Dashboard
-    </div>
-    <div class="nav-item" onclick="showPage('assess',this)">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l7 13H1zm0 3L3 12h10z"/></svg>
-      Risk Assessment
-    </div>
-    <div class="nav-item" onclick="showPage('scenarios',this)">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 8C1 4.13 4.13 1 8 1s7 3.13 7 7-3.13 7-7 7-7-3.13-7-7zm7-3v4l3 1.5-.75 1.5L11 9.5V5z"/></svg>
-      Scenario Planning
-    </div>
-    <div class="nav-section-label">Data Sources</div>
-    <div class="nav-item" onclick="showPage('weather',this)">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a4 4 0 0 1 4 4c0 1.5-.7 2.8-1.7 3.7L10 11H6l-.3-.3A4 4 0 0 1 4 8a4 4 0 0 1 4-4zm0 1a3 3 0 0 0-3 3c0 1.1.5 2 1.2 2.7L6.5 10h3l.3-.3A3 3 0 0 0 11 8a3 3 0 0 0-3-3zM6 12h4v1.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5z"/></svg>
-      Weather Alerts
-    </div>
-    <div class="nav-item" onclick="showPage('history',this)">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 1a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM7 4h1v5l3 1.5-.5 1L7 10z"/></svg>
-      Historical Events
-    </div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">📊 Dashboard</div>
+    <div class="nav-item" onclick="showPage('assess',this)">🔍 Risk Assessment</div>
+    <div class="nav-item" onclick="showPage('scenarios',this)">⚡ Scenario Planning</div>
+    <div class="nav-section-label">Data</div>
+    <div class="nav-item" onclick="showPage('weather',this)">🌦 Weather Alerts</div>
+    <div class="nav-item" onclick="showPage('history',this)">📅 Historical Events</div>
     <div class="nav-section-label">Assistant</div>
-    <div class="nav-item" onclick="showPage('chat',this)">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v9H9l-3 3v-3H2zm1 1v7h3v2l2-2h5V3z"/></svg>
-      AI Chat
-    </div>
+    <div class="nav-item" onclick="showPage('chat',this)">💬 AI Chat</div>
   </nav>
 
-  <!-- CONTENT -->
+  <!-- MAIN CONTENT -->
   <div class="content" id="mainContent">
 
     <!-- DASHBOARD -->
     <div id="page-dashboard" class="page active">
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">System Status</span>
-          <span id="lastRefresh" style="font-size:10px;color:var(--muted);font-family:var(--mono)">Loading...</span>
+          <span class="panel-title">Data Sources</span>
+          <span id="lastRefresh" style="font-size:10px;color:var(--muted);font-family:var(--mono)"></span>
         </div>
         <div class="panel-body">
-          <div class="risk-overview" id="dashStats">
-            <div class="risk-card critical"><div class="rc-label">NEWS ALERTS</div><div class="rc-value" id="stat-news">—</div><div class="rc-sub">Filtered articles</div></div>
-            <div class="risk-card high"><div class="rc-label">WEATHER WATCHES</div><div class="rc-value" id="stat-weather">—</div><div class="rc-sub">Major ports</div></div>
-            <div class="risk-card medium"><div class="rc-label">SEVERE WEATHER</div><div class="rc-value" id="stat-severe">—</div><div class="rc-sub">Active alerts</div></div>
-            <div class="risk-card low"><div class="rc-label">HISTORICAL DB</div><div class="rc-value" id="stat-hist">—</div><div class="rc-sub">Disruption records</div></div>
+          <div class="risk-overview">
+            <div class="risk-card c1"><div class="rc-label">NEWS ALERTS</div><div class="rc-value" id="stat-news">—</div><div class="rc-sub">Filtered articles</div></div>
+            <div class="risk-card c2"><div class="rc-label">WEATHER CITIES</div><div class="rc-value" id="stat-weather">—</div><div class="rc-sub">Major ports</div></div>
+            <div class="risk-card c3"><div class="rc-label">SEVERE WEATHER</div><div class="rc-value" id="stat-severe">—</div><div class="rc-sub">Active alerts</div></div>
+            <div class="risk-card c4"><div class="rc-label">HISTORICAL DB</div><div class="rc-value" id="stat-hist">—</div><div class="rc-sub">Disruption records</div></div>
           </div>
         </div>
       </div>
 
       <div class="panel">
         <div class="panel-header"><span class="panel-title">Quick Risk Assessment</span></div>
-        <div class="panel-body" style="position:relative">
+        <div class="panel-body">
           <div class="form-group">
-            <label class="form-label">FOCUS QUERY</label>
-            <textarea class="form-textarea" id="quickQuery" placeholder="e.g. Assess semiconductor supply chain risks in Asia Pacific...">Assess current supply chain risks for electronics manufacturing in Asia Pacific</textarea>
+            <label class="form-label">QUERY</label>
+            <textarea class="form-textarea" id="quickQuery">Assess current supply chain risks for electronics manufacturing in Asia Pacific</textarea>
           </div>
-          <button class="btn btn-primary" onclick="runQuickAssess()" id="quickAssessBtn">
-            <span>▶ RUN ASSESSMENT</span>
-          </button>
+          <button class="btn btn-primary" id="quickAssessBtn" onclick="runQuickAssess()">▶ RUN ASSESSMENT</button>
+          <div class="debug-box" id="quickDebug"></div>
         </div>
       </div>
 
-      <div id="dashResults" style="display:none">
+      <div id="dashResults" style="display:none;flex-direction:column;gap:20px">
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Assessment Results</span>
-            <span class="badge" id="overallBadge"></span>
+            <span id="dashOverallBadge" class="badge"></span>
           </div>
           <div class="panel-body">
-            <p id="execSummary" style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:16px;"></p>
-            <div class="risk-list" id="riskList"></div>
+            <p id="dashExecSummary" style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:16px;border-left:2px solid var(--accent);padding-left:12px"></p>
+            <div class="risk-list" id="dashRiskList"></div>
           </div>
         </div>
       </div>
@@ -359,56 +257,53 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">COMPANY NAME</label>
-              <input class="form-input" id="companyName" value="Acme Electronics Ltd" placeholder="Company name">
+              <input class="form-input" id="companyName" value="Acme Electronics Ltd">
             </div>
             <div class="form-group">
               <label class="form-label">INDUSTRY</label>
               <select class="form-select" id="companyIndustry">
-                <option>Electronics</option>
-                <option>Automotive</option>
-                <option>Pharma</option>
-                <option>Food & Beverage</option>
-                <option>Retail</option>
-                <option>Energy</option>
-                <option>Manufacturing</option>
+                <option>Electronics</option><option>Automotive</option><option>Pharma</option>
+                <option>Food & Beverage</option><option>Retail</option><option>Energy</option><option>Manufacturing</option>
               </select>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">KEY REGIONS</label>
             <div class="form-tags" id="regionTags">
-              <span class="tag remove" onclick="removeTag(this,'regionTags')">Asia Pacific</span>
-              <span class="tag remove" onclick="removeTag(this,'regionTags')">Europe</span>
+              <span class="tag" onclick="this.remove()">Asia Pacific ×</span>
+              <span class="tag" onclick="this.remove()">Europe ×</span>
             </div>
-            <input class="form-input" style="margin-top:6px" placeholder="Add region... (press Enter)" onkeydown="addTag(event,'regionTags',this)">
+            <input class="form-input" style="margin-top:6px" placeholder="Type region + Enter" onkeydown="addTag(event,'regionTags',this)">
           </div>
           <div class="form-group">
-            <label class="form-label">CRITICAL INPUTS / MATERIALS</label>
+            <label class="form-label">CRITICAL INPUTS</label>
             <div class="form-tags" id="inputTags">
-              <span class="tag remove" onclick="removeTag(this,'inputTags')">semiconductors</span>
-              <span class="tag remove" onclick="removeTag(this,'inputTags')">rare earth metals</span>
+              <span class="tag" onclick="this.remove()">semiconductors ×</span>
+              <span class="tag" onclick="this.remove()">rare earth metals ×</span>
             </div>
-            <input class="form-input" style="margin-top:6px" placeholder="Add material... (press Enter)" onkeydown="addTag(event,'inputTags',this)">
+            <input class="form-input" style="margin-top:6px" placeholder="Type material + Enter" onkeydown="addTag(event,'inputTags',this)">
           </div>
           <div class="form-group">
             <label class="form-label">RISK QUERY</label>
             <textarea class="form-textarea" id="assessQuery">What are the top supply chain risks for our operations over the next 6 months?</textarea>
           </div>
-          <button class="btn btn-primary" onclick="runFullAssessment()" id="fullAssessBtn">▶ FULL ASSESSMENT</button>
+          <button class="btn btn-primary" id="fullAssessBtn" onclick="runFullAssessment()">▶ FULL ASSESSMENT</button>
+          <div class="debug-box" id="fullDebug"></div>
         </div>
       </div>
-      <div id="fullAssessResults" style="display:none">
+
+      <div id="fullAssessResults" style="display:none;flex-direction:column;gap:20px">
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Full Risk Report</span>
+            <span class="panel-title">Risk Report</span>
             <span id="fullOverallBadge" class="badge"></span>
           </div>
           <div class="panel-body">
-            <p id="fullExecSummary" style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:16px;"></p>
+            <p id="fullExecSummary" style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:16px;border-left:2px solid var(--accent);padding-left:12px"></p>
             <div class="risk-list" id="fullRiskList"></div>
           </div>
         </div>
-        <div class="panel" id="mitigationPanel">
+        <div class="panel">
           <div class="panel-header"><span class="panel-title">Mitigation Strategies</span></div>
           <div class="panel-body" id="mitigationList"></div>
         </div>
@@ -439,31 +334,23 @@
             <div class="form-group">
               <label class="form-label">REGION</label>
               <select class="form-select" id="scenarioRegion">
-                <option>Asia Pacific</option>
-                <option>Europe</option>
-                <option>North America</option>
-                <option>Middle East</option>
-                <option>Southeast Asia</option>
-                <option>Latin America</option>
-                <option>Africa</option>
+                <option>Asia Pacific</option><option>Europe</option><option>North America</option>
+                <option>Middle East</option><option>Southeast Asia</option><option>Latin America</option>
               </select>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">INDUSTRY</label>
             <select class="form-select" id="scenarioIndustry">
-              <option>Electronics</option>
-              <option>Automotive</option>
-              <option>Pharma</option>
-              <option>Food & Beverage</option>
-              <option>Retail</option>
-              <option>Energy</option>
+              <option>Electronics</option><option>Automotive</option><option>Pharma</option>
+              <option>Food & Beverage</option><option>Retail</option><option>Energy</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="runScenarios()" id="scenarioBtn">⚡ GENERATE SCENARIOS</button>
+          <button class="btn btn-primary" id="scenarioBtn" onclick="runScenarios()">⚡ GENERATE SCENARIOS</button>
+          <div class="debug-box" id="scenarioDebug"></div>
         </div>
       </div>
-      <div class="scenario-grid" id="scenarioResults"></div>
+      <div id="scenarioResults"></div>
     </div>
 
     <!-- WEATHER -->
@@ -474,9 +361,7 @@
           <button class="btn btn-secondary" onclick="loadWeather()" style="padding:4px 10px;font-size:10px;">REFRESH</button>
         </div>
         <div class="panel-body">
-          <div class="weather-grid" id="weatherGrid">
-            <div class="empty-state"><div class="icon">🌍</div>Loading weather data...</div>
-          </div>
+          <div class="weather-grid" id="weatherGrid"><div class="empty-state">Loading...</div></div>
         </div>
       </div>
     </div>
@@ -486,25 +371,23 @@
       <div class="panel">
         <div class="panel-header"><span class="panel-title">Historical Disruption Database</span></div>
         <div class="panel-body">
-          <div class="risk-list" id="historyList">
-            <div class="empty-state">Loading...</div>
-          </div>
+          <div class="risk-list" id="historyList"><div class="empty-state">Loading...</div></div>
         </div>
       </div>
     </div>
 
     <!-- CHAT -->
     <div id="page-chat" class="page">
-      <div class="panel" style="flex:1;display:flex;flex-direction:column;">
+      <div class="panel chat-wrap">
         <div class="panel-header"><span class="panel-title">AI Risk Intelligence Chat</span></div>
         <div class="chat-messages" id="chatMessages">
           <div class="msg bot">
-            <div class="msg-bubble">Hello! I'm your Supply Chain Risk Intelligence Assistant. Ask me anything about current risks, historical disruptions, weather impacts, or mitigation strategies.</div>
+            <div class="msg-bubble">👋 Hello! I'm your Supply Chain Risk Intelligence Assistant powered by Gemini + RAG. Ask me about risks, historical disruptions, weather impacts, or mitigation strategies.</div>
             <div class="msg-time">System</div>
           </div>
         </div>
         <div class="chat-input-area">
-          <input class="chat-input" id="chatInput" placeholder="Ask about supply chain risks..." onkeydown="if(event.key==='Enter')sendChat()">
+          <input class="chat-input" id="chatInput" placeholder="Ask about supply chain risks..." onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendChat()">
           <button class="chat-send" onclick="sendChat()">SEND</button>
         </div>
       </div>
@@ -515,33 +398,69 @@
   <!-- RIGHT PANEL -->
   <div class="right-panel">
     <div class="right-tabs">
-      <div class="rtab active" onclick="showRTab('rtab-timeline',this)">Timeline</div>
-      <div class="rtab" onclick="showRTab('rtab-indicators',this)">Indicators</div>
+      <div class="rtab active" onclick="showRTab('rt-timeline',this)">Timeline</div>
+      <div class="rtab" onclick="showRTab('rt-indicators',this)">Indicators</div>
     </div>
     <div class="right-content">
-      <div id="rtab-timeline" class="rtab-content">
-        <div class="timeline" id="historicalTimeline"></div>
+      <div id="rt-timeline" class="rtab-content active">
+        <div class="timeline" id="historicalTimeline"><div class="empty-state">Loading...</div></div>
       </div>
-      <div id="rtab-indicators" class="rtab-content" style="display:none;padding:16px;">
+      <div id="rt-indicators" class="rtab-content" style="padding:16px">
         <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:12px;">EARLY WARNING INDICATORS</div>
-        <div id="warningIndicators">
-          <div class="empty-state">Run an assessment to see early warning indicators.</div>
-        </div>
+        <div id="warningIndicators"><div class="empty-state">Run an assessment to populate indicators.</div></div>
       </div>
     </div>
   </div>
 
-</div>
-</div>
+</div><!-- /main -->
+</div><!-- /app -->
 
 <script>
 const API = 'http://localhost:8000';
-let currentAssessment = null;
 
-// ── INIT ──
+// ─── helpers ───────────────────────────────────────────────
+function qs(id){ return document.getElementById(id) }
+
+function showDebug(boxId, data) {
+  const box = qs(boxId);
+  if (!box) return;
+  box.classList.add('visible');
+  box.textContent = '// API Response\n' + JSON.stringify(data, null, 2);
+}
+
+function setBtnLoading(id, loading) {
+  const btn = qs(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<div class="spinner"></div> PROCESSING...'
+    : btn.dataset.label || btn.textContent;
+  if (!loading && !btn.dataset.label) btn.dataset.label = btn.textContent;
+}
+
+function severityClass(s) {
+  // Normalize: "HIGH", "high", "High" → all work
+  return (s || 'medium').toUpperCase();
+}
+
+// ─── navigation ────────────────────────────────────────────
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  qs('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+function showRTab(id, el) {
+  document.querySelectorAll('.rtab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  qs(id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ─── init ──────────────────────────────────────────────────
 async function init() {
-  await loadSystemStatus();
-  await loadDashStats();
+  loadSystemStatus();
+  loadDashStats();
   loadHistoricalTimeline();
   loadWeather();
   loadHistoryPage();
@@ -549,351 +468,413 @@ async function init() {
 
 async function loadSystemStatus() {
   try {
-    const r = await fetch(`${API}/api/health`);
+    const r = await fetch(API + '/api/health');
     const d = await r.json();
-    const el = document.getElementById('systemStatus');
-    if (d.status === 'ok' && d.vector_store === 'ready') {
+    const el = qs('systemStatus');
+    if (d.vector_store === 'ready' && d.api_key_set) {
       el.textContent = 'SYSTEM ONLINE';
       el.style.color = 'var(--green)';
+    } else if (!d.api_key_set) {
+      el.textContent = 'API KEY MISSING';
+      el.style.color = 'var(--red)';
     } else {
-      el.textContent = d.api_key_set ? 'VECTOR STORE LOADING' : 'API KEY MISSING';
+      el.textContent = 'STARTING UP...';
       el.style.color = 'var(--yellow)';
     }
   } catch(e) {
-    document.getElementById('systemStatus').textContent = 'BACKEND OFFLINE';
-    document.getElementById('systemStatus').style.color = 'var(--red)';
+    qs('systemStatus').textContent = 'BACKEND OFFLINE';
+    qs('systemStatus').style.color = 'var(--red)';
   }
 }
 
 async function loadDashStats() {
   try {
-    const r = await fetch(`${API}/api/data-summary`);
+    const r = await fetch(API + '/api/data-summary');
+    if (!r.ok) return;
     const d = await r.json();
-    document.getElementById('stat-news').textContent = d.news_articles ?? '—';
-    document.getElementById('stat-weather').textContent = d.weather_readings ?? '—';
-    document.getElementById('stat-severe').textContent = d.severe_weather?.length ?? '—';
-    document.getElementById('stat-hist').textContent = d.historical_events ?? '—';
-    document.getElementById('lastRefresh').textContent = 'Last refresh: ' + (d.last_refresh?.slice(0,19) ?? 'N/A');
+    qs('stat-news').textContent    = d.news_articles    ?? '—';
+    qs('stat-weather').textContent = d.weather_readings ?? '—';
+    qs('stat-severe').textContent  = (d.severe_weather || []).length;
+    qs('stat-hist').textContent    = d.historical_events ?? '—';
+    if (d.last_refresh)
+      qs('lastRefresh').textContent = 'Updated: ' + d.last_refresh.slice(0,19).replace('T',' ');
   } catch(e) {}
 }
 
-// ── NAVIGATION ──
-function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  el.classList.add('active');
-}
-
-function showRTab(id, el) {
-  document.querySelectorAll('.rtab-content').forEach(c => c.style.display='none');
-  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).style.display = 'block';
-  el.classList.add('active');
-}
-
-// ── QUICK ASSESSMENT ──
+// ─── quick assessment ──────────────────────────────────────
 async function runQuickAssess() {
-  const btn = document.getElementById('quickAssessBtn');
-  const query = document.getElementById('quickQuery').value;
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> ANALYZING...';
+  const query = qs('quickQuery').value.trim();
+  if (!query) return;
+
+  setBtnLoading('quickAssessBtn', true);
+  qs('dashResults').style.display = 'none';
+  qs('quickDebug').classList.remove('visible');
+
   try {
-    const r = await fetch(`${API}/api/assess-risk`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+    const r = await fetch(API + '/api/assess-risk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query })
     });
-    const d = await r.json();
-    if (d.success) renderAssessment(d.data, 'dash');
-  } catch(e) { alert('Error: ' + e.message); }
-  btn.disabled = false;
-  btn.innerHTML = '<span>▶ RUN ASSESSMENT</span>';
-}
+    const envelope = await r.json();
+    showDebug('quickDebug', envelope);         // always show raw response
 
-// ── FULL ASSESSMENT ──
-async function runFullAssessment() {
-  const btn = document.getElementById('fullAssessBtn');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> RUNNING...';
-  const profile = {
-    name: document.getElementById('companyName').value,
-    industry: document.getElementById('companyIndustry').value,
-    regions: getTags('regionTags'),
-    key_suppliers: [],
-    critical_inputs: getTags('inputTags'),
-  };
-  try {
-    const r = await fetch(`${API}/api/assess-risk`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ query: document.getElementById('assessQuery').value, company_profile: profile })
-    });
-    const d = await r.json();
-    if (d.success) renderAssessment(d.data, 'full');
-  } catch(e) { alert('Error: ' + e.message); }
-  btn.disabled = false; btn.innerHTML = '▶ FULL ASSESSMENT';
-}
+    if (!r.ok) {
+      alert('Server error ' + r.status + ': ' + (envelope.detail || JSON.stringify(envelope)));
+      return;
+    }
 
-function renderAssessment(data, mode) {
-  const prefix = mode === 'dash' ? '' : 'full';
-  const badge = document.getElementById(prefix ? 'fullOverallBadge' : 'overallBadge');
-  const rl = mode === 'dash' ? 'riskList' : 'fullRiskList';
-  const es = mode === 'dash' ? 'execSummary' : 'fullExecSummary';
+    // Handle both {success, data} and direct payload
+    const data = envelope.data || envelope;
+    renderAssessment(data, 'dash');
 
-  const level = (data.overall_risk_level || 'MEDIUM').toLowerCase();
-  badge.textContent = data.overall_risk_level + ' — ' + (data.risk_score || '?') + '/100';
-  badge.className = 'badge badge-' + level;
-  document.getElementById(es).textContent = data.executive_summary || '';
-
-  const list = document.getElementById(rl);
-  list.innerHTML = '';
-  (data.identified_risks || []).forEach(r => {
-    const sev = (r.severity || 'medium').toLowerCase();
-    list.innerHTML += `
-      <div class="risk-item ${sev}">
-        <div class="ri-header">
-          <span class="ri-id">${r.risk_id}</span>
-          <span class="ri-title">${r.title}</span>
-          <span class="badge badge-${sev}">${r.severity}</span>
-          <span class="badge badge-geo">${r.category}</span>
-        </div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.4">${r.description}</p>
-        <div class="ri-meta">
-          <span>📍 ${(r.affected_regions||[]).join(', ')}</span>
-          <span>⏱ ${r.time_horizon||''}</span>
-          <span>📊 Prob: ${r.probability}</span>
-        </div>
-      </div>`;
-  });
-
-  if (mode === 'full') {
-    // Mitigation
-    const ml = document.getElementById('mitigationList');
-    ml.innerHTML = '';
-    (data.mitigation_strategies || []).forEach(m => {
-      ml.innerHTML += `
-        <div style="margin-bottom:14px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">
-          <div style="font-size:12px;font-weight:600;margin-bottom:6px;">
-            <span style="color:var(--muted);font-family:var(--mono);font-size:10px;">${m.risk_id} // </span>${m.strategy}
-          </div>
-          <ul style="padding-left:16px;color:var(--muted);font-size:12px;line-height:1.8;">
-            ${(m.actions||[]).map(a=>`<li>${a}</li>`).join('')}
-          </ul>
-          <div style="margin-top:6px;font-size:10px;color:var(--muted)">Timeline: ${m.timeline} | Cost: ${m.cost_estimate}</div>
-        </div>`;
-    });
-
-    // Immediate actions
-    const ia = document.getElementById('immediateActions');
-    ia.innerHTML = (data.recommended_immediate_actions || []).map((a,i)=>
-      `<div style="display:flex;gap:10px;margin-bottom:8px;font-size:13px;">
-        <span style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-top:2px;">0${i+1}</span>
-        <span>${a}</span>
-      </div>`
-    ).join('');
-
-    document.getElementById('fullAssessResults').style.display = 'block';
-
-    // Update indicators panel
-    const wi = document.getElementById('warningIndicators');
-    wi.innerHTML = (data.early_warning_indicators || []).map(ind =>
-      `<div style="display:flex;gap:8px;margin-bottom:10px;font-size:12px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;">
-        <span style="color:var(--yellow)">⚠</span><span>${ind}</span>
-      </div>`
-    ).join('');
-  } else {
-    document.getElementById('dashResults').style.display = 'block';
+  } catch(e) {
+    alert('Request failed: ' + e.message + '\nIs the backend running on port 8000?');
+  } finally {
+    setBtnLoading('quickAssessBtn', false);
+    qs('quickAssessBtn').innerHTML = '▶ RUN ASSESSMENT';
   }
 }
 
-// ── SCENARIOS ──
-async function runScenarios() {
-  const btn = document.getElementById('scenarioBtn');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> GENERATING...';
+// ─── full assessment ───────────────────────────────────────
+async function runFullAssessment() {
+  setBtnLoading('fullAssessBtn', true);
+  qs('fullAssessResults').style.display = 'none';
+  qs('fullDebug').classList.remove('visible');
+
+  const profile = {
+    name:            qs('companyName').value,
+    industry:        qs('companyIndustry').value,
+    regions:         getTags('regionTags'),
+    key_suppliers:   [],
+    critical_inputs: getTags('inputTags'),
+  };
+
   try {
-    const r = await fetch(`${API}/api/generate-scenarios`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+    const r = await fetch(API + '/api/assess-risk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: qs('assessQuery').value, company_profile: profile })
+    });
+    const envelope = await r.json();
+    showDebug('fullDebug', envelope);
+
+    if (!r.ok) {
+      alert('Server error ' + r.status + ': ' + (envelope.detail || JSON.stringify(envelope)));
+      return;
+    }
+    const data = envelope.data || envelope;
+    renderAssessment(data, 'full');
+
+  } catch(e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtnLoading('fullAssessBtn', false);
+    qs('fullAssessBtn').innerHTML = '▶ FULL ASSESSMENT';
+  }
+}
+
+// ─── render assessment ─────────────────────────────────────
+function renderAssessment(data, mode) {
+  console.log('[renderAssessment]', mode, data);
+
+  const isDash  = mode === 'dash';
+  const badgeEl = qs(isDash ? 'dashOverallBadge' : 'fullOverallBadge');
+  const summEl  = qs(isDash ? 'dashExecSummary'  : 'fullExecSummary');
+  const listEl  = qs(isDash ? 'dashRiskList'     : 'fullRiskList');
+
+  // ── Overall badge ──
+  const lvl   = data.overall_risk_level || data.risk_level || 'UNKNOWN';
+  const score = data.risk_score || data.score || '?';
+  if (badgeEl) {
+    badgeEl.textContent = lvl + ' — ' + score + '/100';
+    badgeEl.className   = 'badge badge-' + lvl;
+  }
+
+  // ── Executive summary ──
+  if (summEl) {
+    summEl.textContent = data.executive_summary || data.summary || '(No summary provided)';
+  }
+
+  // ── Risk items ──
+  if (listEl) {
+    const risks = data.identified_risks || data.risks || [];
+    if (risks.length === 0) {
+      listEl.innerHTML = '<div class="empty-state">No risks identified in response.</div>';
+    } else {
+      listEl.innerHTML = risks.map(r => {
+        const sev = severityClass(r.severity);
+        const regions  = Array.isArray(r.affected_regions)  ? r.affected_regions.join(', ')  : (r.affected_regions  || '—');
+        const sectors  = Array.isArray(r.affected_sectors)   ? r.affected_sectors.join(', ')   : (r.affected_sectors   || '—');
+        return `
+          <div class="risk-item ${sev}">
+            <div class="ri-header">
+              <span class="ri-id">${r.risk_id || ''}</span>
+              <span class="ri-title">${r.title || r.name || 'Unnamed Risk'}</span>
+              <span class="badge badge-${sev}">${sev}</span>
+              ${r.category ? `<span class="badge badge-cat">${r.category}</span>` : ''}
+            </div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.5">${r.description || r.potential_impact || ''}</p>
+            <div class="ri-meta">
+              ${regions  ? `<span>📍 ${regions}</span>` : ''}
+              ${r.time_horizon ? `<span>⏱ ${r.time_horizon}</span>` : ''}
+              ${r.probability  ? `<span>📊 Prob: ${r.probability}</span>` : ''}
+              ${sectors  ? `<span>🏭 ${sectors}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Full mode extras ──
+  if (!isDash) {
+    // Mitigation
+    const mitEl = qs('mitigationList');
+    const strats = data.mitigation_strategies || data.mitigations || [];
+    if (mitEl) {
+      mitEl.innerHTML = strats.length ? strats.map(m => `
+        <div class="mitigation-item">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">
+            <span style="color:var(--muted);font-family:var(--mono);font-size:10px">${m.risk_id || ''} // </span>${m.strategy || m.title || 'Strategy'}
+            ${m.cost_estimate ? `<span style="float:right;font-size:10px;color:var(--muted)">Cost: ${m.cost_estimate} | ${m.timeline || ''}</span>` : ''}
+          </div>
+          <ul style="padding-left:16px;color:var(--muted);font-size:12px;line-height:2">
+            ${(m.actions || []).map(a => `<li>${a}</li>`).join('')}
+          </ul>
+        </div>`).join('') : '<div class="empty-state">No mitigation strategies in response.</div>';
+    }
+
+    // Immediate actions
+    const iaEl = qs('immediateActions');
+    const actions = data.recommended_immediate_actions || data.immediate_actions || [];
+    if (iaEl) {
+      iaEl.innerHTML = actions.length ? actions.map((a,i) => `
+        <div class="action-item">
+          <span class="action-num">0${i+1}</span>
+          <span>${a}</span>
+        </div>`).join('') : '<div class="empty-state">No immediate actions in response.</div>';
+    }
+
+    // Early warning indicators
+    const wiEl = qs('warningIndicators');
+    const indicators = data.early_warning_indicators || data.indicators || [];
+    if (wiEl) {
+      wiEl.innerHTML = indicators.length ? indicators.map(ind => `
+        <div style="display:flex;gap:8px;margin-bottom:10px;font-size:12px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px">
+          <span style="color:var(--yellow)">⚠</span><span>${ind}</span>
+        </div>`).join('') : '<div class="empty-state">No indicators found.</div>';
+    }
+
+    qs('fullAssessResults').style.display = 'flex';
+    showRTab('rt-indicators', document.querySelectorAll('.rtab')[1]);
+
+  } else {
+    qs('dashResults').style.display = 'flex';
+  }
+}
+
+// ─── scenarios ─────────────────────────────────────────────
+async function runScenarios() {
+  setBtnLoading('scenarioBtn', true);
+  qs('scenarioResults').innerHTML = '';
+  qs('scenarioDebug').classList.remove('visible');
+
+  try {
+    const r = await fetch(API + '/api/generate-scenarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        scenario_type: document.getElementById('scenarioType').value,
-        region: document.getElementById('scenarioRegion').value,
-        industry: document.getElementById('scenarioIndustry').value,
+        scenario_type: qs('scenarioType').value,
+        region:        qs('scenarioRegion').value,
+        industry:      qs('scenarioIndustry').value,
       })
     });
-    const d = await r.json();
-    if (d.success) renderScenarios(d.data);
-  } catch(e) { alert('Error: ' + e.message); }
-  btn.disabled = false; btn.innerHTML = '⚡ GENERATE SCENARIOS';
+    const envelope = await r.json();
+    showDebug('scenarioDebug', envelope);
+
+    if (!r.ok) {
+      alert('Server error ' + r.status + ': ' + (envelope.detail || JSON.stringify(envelope)));
+      return;
+    }
+    const data = envelope.data || envelope;
+    renderScenarios(data);
+
+  } catch(e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtnLoading('scenarioBtn', false);
+    qs('scenarioBtn').innerHTML = '⚡ GENERATE SCENARIOS';
+  }
 }
 
 function renderScenarios(data) {
-  const container = document.getElementById('scenarioResults');
-  container.innerHTML = '';
-  (data.scenarios || []).forEach(s => {
+  console.log('[renderScenarios]', data);
+  const container = qs('scenarioResults');
+  const scenarios = data.scenarios || data.scenario_list || (Array.isArray(data) ? data : []);
+
+  if (!scenarios.length) {
+    container.innerHTML = '<div class="empty-state panel" style="padding:32px">No scenarios returned. Check debug panel above.</div>';
+    return;
+  }
+
+  container.innerHTML = scenarios.map(s => {
     const probColor = s.probability_score > 7 ? 'var(--red)' : s.probability_score > 4 ? 'var(--yellow)' : 'var(--green)';
-    container.innerHTML += `
-      <div class="scenario-card panel">
-        <div class="sc-header">
-          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.scenario_id}</span>
-          <span class="sc-title">${s.title}</span>
+    const cascades  = Array.isArray(s.cascade_effects)   ? s.cascade_effects   : [];
+    const triggers  = Array.isArray(s.trigger_events)    ? s.trigger_events    : [];
+    const nodes     = Array.isArray(s.affected_supply_chain_nodes) ? s.affected_supply_chain_nodes : [];
+    return `
+      <div class="scenario-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.scenario_id || 'S?'}</span>
+          <span style="font-size:14px;font-weight:600;flex:1">${s.title || 'Unnamed Scenario'}</span>
         </div>
         <div class="sc-scores">
           <div class="sc-score">
-            <div class="sc-score-val" style="color:${probColor}">${s.probability_score}/10</div>
+            <div class="sc-score-val" style="color:${probColor}">${s.probability_score ?? '?'}/10</div>
             <div class="sc-score-lbl">PROBABILITY</div>
           </div>
           <div class="sc-score">
-            <div class="sc-score-val" style="color:var(--orange)">${s.severity_score}/10</div>
+            <div class="sc-score-val" style="color:var(--orange)">${s.severity_score ?? '?'}/10</div>
             <div class="sc-score-lbl">SEVERITY</div>
           </div>
           <div class="sc-score">
-            <div class="sc-score-val">${s.estimated_recovery_days}d</div>
+            <div class="sc-score-val">${s.estimated_recovery_days ?? '?'}d</div>
             <div class="sc-score-lbl">RECOVERY</div>
           </div>
           <div class="sc-score">
-            <div class="sc-score-val" style="font-size:14px">$${s.financial_impact_usd_millions}M</div>
+            <div class="sc-score-val" style="font-size:13px">$${s.financial_impact_usd_millions ?? '?'}M</div>
             <div class="sc-score-lbl">IMPACT</div>
           </div>
         </div>
-        <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${s.narrative}</p>
-        <div class="sc-section">
-          <div class="sc-section-title">Cascade Effects</div>
-          <div class="sc-pills">${(s.cascade_effects||[]).map(e=>`<span class="sc-pill">${e}</span>`).join('')}</div>
-        </div>
-        <div class="sc-section" style="margin-top:6px">
-          <div class="sc-section-title">Historical Analog</div>
-          <div style="font-size:11px;color:var(--muted)">${s.historical_analog||'—'}</div>
-        </div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">${s.narrative || ''}</p>
+        ${triggers.length ? `<div style="margin-bottom:8px"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">TRIGGERS</div><div class="sc-pills">${triggers.map(t=>`<span class="sc-pill">${t}</span>`).join('')}</div></div>` : ''}
+        ${cascades.length ? `<div style="margin-bottom:8px"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">CASCADE EFFECTS</div><div class="sc-pills">${cascades.map(c=>`<span class="sc-pill">${c}</span>`).join('')}</div></div>` : ''}
+        ${nodes.length ? `<div style="margin-bottom:8px"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">AFFECTED NODES</div><div class="sc-pills">${nodes.map(n=>`<span class="sc-pill">${n}</span>`).join('')}</div></div>` : ''}
+        ${s.historical_analog ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">📚 Historical analog: <em>${s.historical_analog}</em></div>` : ''}
       </div>`;
-  });
+  }).join('');
 }
 
-// ── WEATHER ──
+// ─── weather ───────────────────────────────────────────────
 async function loadWeather() {
   try {
-    const r = await fetch(`${API}/api/current-weather`);
+    const r = await fetch(API + '/api/current-weather');
+    if (!r.ok) return;
     const d = await r.json();
-    const grid = document.getElementById('weatherGrid');
-    grid.innerHTML = '';
-    (d.data || []).forEach(w => {
-      grid.innerHTML += `
-        <div class="weather-card">
-          <div class="wc-city">${w.city}</div>
-          <div class="wc-desc">${w.description}</div>
-          <div class="wc-temp">${w.temp_c}°C</div>
-          <div class="wc-wind">💨 ${w.wind_kmh} km/h</div>
-          <span class="wc-severe ${w.is_severe?'yes':'no'}">${w.is_severe?'⚠ ALERT':'✓ CLEAR'}</span>
-        </div>`;
-    });
-  } catch(e) {}
+    const items = d.data || [];
+    const grid = qs('weatherGrid');
+    if (!items.length) { grid.innerHTML = '<div class="empty-state">No weather data</div>'; return; }
+    grid.innerHTML = items.map(w => `
+      <div class="weather-card">
+        <div class="wc-city">${w.city}</div>
+        <div class="wc-desc">${w.description}</div>
+        <div class="wc-temp">${w.temp_c}°C</div>
+        <div class="wc-wind">💨 ${w.wind_kmh} km/h</div>
+        <span class="wc-badge ${w.is_severe ? 'severe' : 'clear'}">${w.is_severe ? '⚠ ALERT' : '✓ CLEAR'}</span>
+      </div>`).join('');
+  } catch(e) { qs('weatherGrid').innerHTML = '<div class="empty-state">Could not load weather</div>'; }
 }
 
-// ── HISTORY PAGE ──
+// ─── history ───────────────────────────────────────────────
 async function loadHistoryPage() {
   try {
-    const r = await fetch(`${API}/api/historical-disruptions`);
+    const r = await fetch(API + '/api/historical-disruptions');
+    if (!r.ok) return;
     const d = await r.json();
-    const list = document.getElementById('historyList');
-    list.innerHTML = '';
-    (d.data || []).forEach(ev => {
-      const sev = ev.severity || 'medium';
-      list.innerHTML += `
+    const list = qs('historyList');
+    const items = d.data || [];
+    list.innerHTML = items.map(ev => {
+      const sev = (ev.severity || 'medium').toUpperCase();
+      return `
         <div class="risk-item ${sev}">
           <div class="ri-header">
             <span class="ri-title">${ev.event}</span>
-            <span class="badge badge-${sev}">${ev.severity?.toUpperCase()}</span>
+            <span class="badge badge-${sev}">${sev}</span>
+            <span class="badge badge-cat">${ev.type}</span>
           </div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.4">${ev.impact}</p>
+          <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px">${ev.impact}</p>
           <div class="ri-meta">
             <span>📅 ${ev.date}</span>
             <span>📍 ${ev.region}</span>
             <span>⏱ ${ev.resolution_days}d recovery</span>
-            <span>🏭 ${(ev.affected_sectors||[]).join(', ')}</span>
           </div>
         </div>`;
-    });
+    }).join('');
   } catch(e) {}
 }
 
-// ── TIMELINE ──
+// ─── timeline ──────────────────────────────────────────────
 async function loadHistoricalTimeline() {
   try {
-    const r = await fetch(`${API}/api/historical-disruptions`);
+    const r = await fetch(API + '/api/historical-disruptions');
+    if (!r.ok) return;
     const d = await r.json();
-    const tl = document.getElementById('historicalTimeline');
-    const events = (d.data || []).slice(0, 8);
-    tl.innerHTML = events.map(ev => `
+    const tl = qs('historicalTimeline');
+    tl.innerHTML = (d.data || []).slice(0,8).map(ev => `
       <div class="tl-item">
         <div class="tl-dot ${ev.severity}"></div>
         <div class="tl-body">
           <div class="tl-title">${ev.event}</div>
           <div class="tl-date">${ev.date} · ${ev.region}</div>
-          <div class="tl-desc">${ev.impact.slice(0,80)}...</div>
+          <div class="tl-desc">${ev.impact.slice(0,90)}...</div>
         </div>
       </div>`).join('');
   } catch(e) {}
 }
 
-// ── CHAT ──
+// ─── chat ──────────────────────────────────────────────────
 async function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
+  const input = qs('chatInput');
+  const msg   = input.value.trim();
   if (!msg) return;
   input.value = '';
-
-  appendChat('user', msg);
-  appendChat('bot', '...');
+  appendMsg('user', msg);
+  const thinkEl = appendMsg('bot', '⏳ Thinking...');
 
   try {
-    const r = await fetch(`${API}/api/chat`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+    const r = await fetch(API + '/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg })
     });
     const d = await r.json();
-    const messages = document.getElementById('chatMessages');
-    messages.lastElementChild.remove();
-    appendChat('bot', d.answer || 'No response');
+    thinkEl.querySelector('.msg-bubble').textContent = d.answer || 'No response received.';
   } catch(e) {
-    const messages = document.getElementById('chatMessages');
-    messages.lastElementChild.remove();
-    appendChat('bot', 'Error contacting server. Is the backend running?');
+    thinkEl.querySelector('.msg-bubble').textContent = '❌ Error: ' + e.message;
   }
 }
 
-function appendChat(role, text) {
-  const m = document.getElementById('chatMessages');
-  const t = new Date().toLocaleTimeString();
-  m.innerHTML += `
-    <div class="msg ${role}">
-      <div class="msg-bubble">${text}</div>
-      <div class="msg-time">${t}</div>
-    </div>`;
+function appendMsg(role, text) {
+  const m   = qs('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-bubble">${text}</div><div class="msg-time">${new Date().toLocaleTimeString()}</div>`;
+  m.appendChild(div);
   m.scrollTop = m.scrollHeight;
+  return div;
 }
 
-// ── UTILS ──
+// ─── utils ─────────────────────────────────────────────────
 function getTags(containerId) {
-  return Array.from(document.querySelectorAll(`#${containerId} .tag`)).map(t => t.textContent.replace(' ×','').trim());
+  return Array.from(document.querySelectorAll('#' + containerId + ' .tag'))
+    .map(t => t.textContent.replace(' ×','').trim())
+    .filter(Boolean);
 }
 function addTag(e, containerId, input) {
   if (e.key === 'Enter' && input.value.trim()) {
-    const container = document.getElementById(containerId);
-    const tag = document.createElement('span');
-    tag.className = 'tag remove';
-    tag.onclick = function() { removeTag(this, containerId); };
-    tag.textContent = input.value.trim();
-    container.appendChild(tag);
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.textContent = input.value.trim() + ' ×';
+    span.onclick = function(){ this.remove(); };
+    document.getElementById(containerId).appendChild(span);
     input.value = '';
   }
 }
-function removeTag(el, containerId) { el.remove(); }
-
 async function refreshData() {
-  const btn = document.querySelector('.header-right .btn-secondary');
-  btn.textContent = 'Refreshing...';
-  btn.disabled = true;
   try {
-    await fetch(`${API}/api/refresh-data`, { method: 'POST' });
-    setTimeout(() => { loadDashStats(); loadSystemStatus(); }, 3000);
+    await fetch(API + '/api/refresh-data', { method: 'POST' });
+    setTimeout(() => { loadDashStats(); loadSystemStatus(); }, 4000);
   } catch(e) {}
-  setTimeout(() => { btn.textContent = '↻ REFRESH DATA'; btn.disabled = false; }, 3000);
 }
 
 init();
