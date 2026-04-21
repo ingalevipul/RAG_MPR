@@ -159,9 +159,39 @@ async def assess_risk(req: RiskAssessmentRequest):
     if not _risk_chain:
         raise HTTPException(503, "Risk chain not initialized. Check GOOGLE_API_KEY in .env")
     try:
+        from backend.data_ingestion import fetch_news_articles, fetch_weather_data
+
+        # ── Fetch real-time data at assessment time ──
+        print("[ASSESS] Fetching real-time news articles...")
+        realtime_news = fetch_news_articles(max_per_feed=5)
+        print(f"[ASSESS] Got {len(realtime_news)} real-time news articles")
+
+        print("[ASSESS] Fetching real-time weather data...")
+        realtime_weather = fetch_weather_data()
+        print(f"[ASSESS] Got {len(realtime_weather)} weather readings")
+
+        realtime_data = {
+            "news":            realtime_news,
+            "weather":         realtime_weather,
+            "fetch_timestamp": datetime.now().isoformat(),
+        }
+
         profile_dict = req.company_profile.dict() if req.company_profile else None
-        result = _risk_chain.run(query=req.query, company_profile=profile_dict)
-        return {"success": True, "data": result, "timestamp": datetime.now().isoformat()}
+        result = _risk_chain.run(
+            query=req.query,
+            company_profile=profile_dict,
+            realtime_data=realtime_data,
+        )
+        return {
+            "success":   True,
+            "data":      result,
+            "timestamp": datetime.now().isoformat(),
+            "realtime_fetch": {
+                "news_articles":    len(realtime_news),
+                "weather_readings": len(realtime_weather),
+                "severe_weather":   [w["city"] for w in realtime_weather if w.get("is_severe")],
+            },
+        }
     except Exception as e:
         raise HTTPException(500, str(e))
 

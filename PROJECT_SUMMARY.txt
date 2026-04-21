@@ -1,0 +1,64 @@
+# SupplyGuard — AI Risk Intelligence
+## Project Overview
+SupplyGuard is an advanced, proactive supply chain risk assessment tool built around Retrieval-Augmented Generation (RAG). By integrating live data streams (real-time news and active weather alerts) with a historical disruption database, the system identifies potential supply chain impacts, generates future disruption scenarios, and offers mitigation strategies. 
+
+The core intelligence is driven by Google's Gemini LLM. However, it incorporates a robust, zero-dependency, data-driven fallback mechanism to ensure constant operability and reliability if external AI limits (like quota exhaustion) are encountered.
+
+---
+
+## 🛠️ Technology Stack
+### Frontend
+- **HTML5 & Vanilla CSS**: Provides a responsive, dynamic, dashboard-style UI utilizing CSS variables, modern grid/flexbox layouts, and custom animations (e.g., loading pulses, spinners).
+- **Vanilla JavaScript**: Handles state management, UI navigation, and asynchronous API calls back to the server without the overhead of heavy frameworks like React or Vue. 
+
+### Backend
+- **Python (FastAPI)**: Serves as the high-performance asynchronous API layer. It manages routing, endpoint definitions, CORS, data formulation, and orchestration of AI logic.
+- **Data Ingestion Modules**: 
+  - RSS Parsing (`feedparser`) utilizing public endpoints (Reuters, BBC, ReliefWeb).
+  - REST requests (`requests`) to the OpenWeatherMap API for live logistics-hub weather tracking.
+- **Vector Database**: **ChromaDB** runs locally to ingest and enable semantic searches over document chunks.
+- **Embeddings**: HuggingFace (`sentence-transformers/all-MiniLM-L6-v2`) runs locally on the CPU (free and local, entirely eliminating embedding network costs) to compute text vectors.
+- **AI Integration**: LangChain (`langchain-google-genai`) interfaces with the `gemini-2.5-flash` model, driving prompt templating and LLM orchestration.
+
+---
+
+## ⚙️ Detailed System Architecture & Workflow
+
+### 1. System Initialization & Data Indexing (`vector_store.py` / `data_ingestion.py`)
+Upon server startup:
+- The backend runs a background task fetching three streams of baseline information: 
+  1. Live global news alerts filtered against critical keywords (like "shortage", "port strike", "typhoon").
+  2. Weather parameters from critical world supply ports (e.g., Shanghai, Navi Mumbai, Los Angeles).
+  3. A robust, built-in JSON dictionary of historical supply chain disruptions (e.g., the Suez Canal Blockage, Taiwan Semiconductor shortages).
+- These records are formatted into LangChain `Document` objects and embedded by the HuggingFace model. The embedded tensors are natively indexed into a local ChromaDB instance within the `vector_store/chroma_db` directory. 
+
+### 2. Live Request Execution Flow (`main.py`)
+When a user launches a risk assessment from the UI:
+- They provide essential profile parameters: **Company Name, Industry Sector, Key Regions, Critical Input Materials**, and a specific **Risk Query**. 
+- The `/api/assess-risk` backend endpoint intercepts the POST request. 
+- *Crucially*, the system does not simply rely on the initially seeded database limit. Before engaging the AI logic, the endpoint synchronously triggers a **fresh fetch** of real-time data: fetching the very latest RSS articles and live weather data. 
+
+### 3. RAG Context Formulation (`rag_chain.py`)
+- The RAG mechanism queries the local ChromaDB database using the user's specific query. It retrieves the top `K` mathematically relevant documents via vector similarity searches.
+- The retrieved historical documents are compiled into a formatted text string to create the `HISTORICAL & VECTOR-DB CONTEXT`.
+- Simultaneously, the newly-fetched live data is formatted into a readable list of chronological events, producing the `REAL-TIME DATA` context string.
+
+### 4. AI Generative Processing (`RiskAssessmentChain`)
+- With context formatted, the pipeline injects the User Query, Company Profile, Historical Context, and Real-Time Context into an engineered Prompt Template designed for Gemini.
+- The prompt includes explicit instructions ordering the LLM to prioritize real-time facts while retaining historical analogy capabilities, demanding the output be formatted as strict, parseable JSON.
+- The Gemini model analyzes the data and responds with identified supply risks (rated by severity), dynamic mitigation strategies, early warning indicators.
+- A smart repair parser attempts to capture and close fragmented JSON strings in case the LLM terminates mid-response due to token limits. 
+
+### 5. Multi-Layer Resilience & Fallback Engine
+To guarantee zero-downtime, the system applies robust exception handling against Google AI rate-limits ("429 Quota Exceeded"):
+- If the `chain.invoke()` LLM call fails, the catch block intercepts the error and routes the payload to `_build_fallback_assessment()`.
+- The fallback logic evaluates the raw, un-AI'ed data: 
+  - Evaluates active severe weather dictionaries (assigning "HIGH" or "CRITICAL" severities based on keyword scanning like "tornado" vs "rain").
+  - Identifies news articles and maps them directly to the user's operational regions.
+  - Generates mathematical averages of all identified items to establish a total risk score. 
+  - Spits out an identically structured JSON object populated by this pure, data-driven synthesis, ensuring frontends don't crash.
+  
+### 6. Complementary Analytical Features
+Beyond direct assessments, the system orchestrates two other LLM processes:
+- **Scenario Planning Pipeline** (`ScenarioGenerationChain`): Allows operators to input a risk trigger (e.g., Cyber Attack in Europe). The backend retrieves historical analogs and dynamically generates cascading supply chain failure maps and estimated recovery/cost projections.
+- **Assistant Chatbot** (`ChatChain`): An intelligence conversational interface. It maintains short-term conversational history integrated with RAG similarity searches, allowing the user to drill deeper into the platform knowledge base.
